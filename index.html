@@ -935,6 +935,11 @@ const LOJA_POR_PESSOA = {
 function lojasDaPessoa(nome){ return Object.keys(LOJA_POR_PESSOA).filter(l=>LOJA_POR_PESSOA[l].includes(nome)); }
 
 const DEPTS = ['Corporativas','Comercial','Fábrica','Administrativo & Financeiro','Marketing'];
+// Chave de acesso total (só o Pedro deve ter esse link) — sem ela ou sem um link de pessoa/departamento
+// válido, o painel principal fica bloqueado em vez de mostrar os dados de todo mundo por padrão.
+const MASTER_TOKEN = 'gw9M_6Nrlp6sOYIAi7gBXQ';
+let masterAccess = false;
+let acessoBloqueado = false;
 const DEPT_ICON = {
   'Corporativas':'★','Comercial':'◆','Fábrica':'⬢','Administrativo & Financeiro':'▣','Marketing':'✦'
 };
@@ -3516,6 +3521,8 @@ function parseHash(){
     if(mp) return {person: decodeURIComponent(mp[1])};
     return {};
   }
+  const mm = h.match(/^mestre\/(.+)$/);
+  if(mm) return {master: mm[1]===MASTER_TOKEN};
   const m = h.match(/^acompanhar\/([^\/]+)(?:\/pessoa\/(.+))?$/);
   if(m){
     const dept = decodeURIComponent(m[1]);
@@ -3593,6 +3600,20 @@ function render(){
   const topbar = document.getElementById('topbar');
   const content = document.getElementById('content');
 
+  if(acessoBloqueado && !STANDALONE_DEPT){
+    sidebar.style.display='none'; topbar.style.display='none';
+    mainArea.style.padding='0';
+    content.innerHTML = `
+      <div style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; background:var(--bg);">
+        <div style="max-width:420px; text-align:center; background:var(--surface); border-radius:var(--radius); padding:36px 30px; box-shadow:var(--shadow);">
+          <div style="font-size:40px; margin-bottom:12px;">🔒</div>
+          <h2 style="font-family:'Cormorant Garamond',Georgia,serif; font-size:22px; margin:0 0 10px;">Acesso por link pessoal</h2>
+          <p style="color:var(--ink-muted); font-size:14px; line-height:1.6; margin:0;">Esse painel só abre através do link específico que você recebeu (do seu departamento ou da sua própria visão). Se você apagou parte do endereço sem querer, peça o link de novo pra quem te enviou.</p>
+        </div>
+      </div>`;
+    return;
+  }
+
   if(trackDept){
     sidebar.style.display = 'none';
     topbar.style.display = 'none';
@@ -3651,17 +3672,25 @@ function render(){
     if(person){ trackPersonFilter = person; personLocked = true; }
     return;
   }
-  const {dept, person} = parseHash();
+  const {dept, person, master} = parseHash();
+  if(master){ masterAccess = true; return; }
   if(dept){
     trackDept = dept;
     if(person){ trackPersonFilter = person; personLocked = true; }
+    return;
   }
+  // Sem chave mestra, sem departamento/pessoa válido no link: bloqueia por padrão — evita que alguém
+  // apague parte do link (por acidente ou de propósito) e caia na visão completa de todo mundo.
+  acessoBloqueado = true;
 })();
 
 if(!STANDALONE_DEPT){
   window.addEventListener('hashchange', ()=>{
     if(suppressHashChange) return; // mudança disparada pelo nosso próprio código (ex: seletor de pessoa) — o estado já foi tratado diretamente
-    const {dept, person} = parseHash();
+    const {dept, person, master} = parseHash();
+    if(master){ masterAccess = true; acessoBloqueado = false; trackDept = null; trackPersonFilter=''; personLocked=false; render(); return; }
+    if(!dept){ acessoBloqueado = true; render(); return; }
+    acessoBloqueado = false;
     trackDept = dept || null;
     trackPersonFilter = person || '';
     personLocked = !!person;
