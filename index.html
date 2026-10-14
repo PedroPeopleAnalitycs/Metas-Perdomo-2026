@@ -943,11 +943,11 @@ const BONUS_MULT = JSON.parse(document.getElementById('bonus-mult-json').textCon
 // quem pontua nos indicadores operacionais de cada loja continua sendo a pessoa original de cada uma).
 const LOJA_POR_PESSOA = {
   'ANAPOLIS': ['Carla Rosas'],
-  'CONJUNTO NACIONAL': ['Marcia Denise'],
-  'COSTA - DF': ['Walkélia'],
+  'CONJUNTO NACIONAL': ['Marcia Denise', 'Leide Gomes'],
+  'COSTA - DF': ['Walkélia', 'Leide Gomes'],
   'DRIVE': ['Gessika da Silva'],
   'LOJA T4': ['Patricia Santos', 'Ana Paula'],
-  'MANE GARRINCHA': ['Bruna Mikaele'],
+  'MANE GARRINCHA': ['Bruna Mikaele', 'Leide Gomes'],
   'PRIME ALPHAVILLE': ['Adriane Vanessa'],
   'JOAO MOURA': ['Thais Citeli'],
   'TATUAPE': ['Thais Citeli'],
@@ -955,6 +955,7 @@ const LOJA_POR_PESSOA = {
   'RIBEIRAO PRETO': ['Leticia Barbosa'],
   'CAMPINAS': ['Layla Cruz'],
   'ENCOMENDAS': ['Sueni Melo'],
+  // Leide Gomes responde por todo o DF (Conjunto Nacional, Costa-DF e Mané Garrincha) — vínculo adicional, mantém os demais responsáveis.
   // MOEMA: a coluna RESPONSÁVEL da base marca "SEM RESPONSAVEL" — fica sem vínculo.
 };
 function lojasDaPessoa(nome){ return Object.keys(LOJA_POR_PESSOA).filter(l=>LOJA_POR_PESSOA[l].includes(nome)); }
